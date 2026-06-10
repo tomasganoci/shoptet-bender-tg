@@ -87,14 +87,30 @@ const rewriteRules = [
   { ...(options.blankMode && blankModeScript) },
 ];
 
+// When --host is set (tunnel mode), add a rewrite rule so BrowserSync uses
+// the external hostname instead of localhost:3010 in all rewritten URLs.
+const externalHost = options.host;
+const tunnelRewriteRule = externalHost
+  ? {
+      match: /localhost:3010/g,
+      fn: () => externalHost,
+    }
+  : null;
+
+const allRewriteRules = [
+  ...rewriteRules,
+  ...(tunnelRewriteRule ? [tunnelRewriteRule] : []),
+].filter(value => Object.keys(value).length !== 0);
+
 const bsPlugin = [
   new BrowserSyncPlugin({
     proxy: { target: options.remote ?? config.defaultUrl },
     serveStatic: [outputFolder],
-    rewriteRules: rewriteRules.filter(value => Object.keys(value).length !== 0),
+    rewriteRules: allRewriteRules,
     port: 3010,
     notify: options.notify,
     open: false,
+    ...(externalHost && { host: externalHost }),
   }),
 ];
 

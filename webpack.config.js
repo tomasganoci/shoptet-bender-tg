@@ -1,12 +1,14 @@
 /** @format */
 
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { glob } from 'glob';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import CssMinimizerPlugin from 'css-minimizer-webpack-plugin';
 import WebpackObfuscatorPlugin from 'webpack-obfuscator';
 import RemoveEmptyScriptsPlugin from 'webpack-remove-empty-scripts';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const outputDir = path.resolve(process.cwd(), 'dist');
 
 const extensionsFilenames = {
@@ -46,6 +48,9 @@ export default env => {
   return {
     mode: isProduction ? 'production' : 'development',
     devtool: isProduction ? false : 'eval',
+    resolveLoader: {
+      modules: [path.resolve(process.cwd(), 'node_modules'), path.resolve(__dirname, 'node_modules')],
+    },
     entry: {
       ...getEntries('js', isProduction),
       ...getEntries('{scss,less}', isProduction),
@@ -73,6 +78,12 @@ export default env => {
     }),
     module: {
       rules: [
+        {
+          test: /\.m?js$/,
+          resolve: {
+            fullySpecified: false,
+          },
+        },
         {
           test: /\.js$/,
           use: ['babel-loader'],

@@ -11,6 +11,7 @@ command
   .option('-b, --blankMode', 'simulate the blank template.', false)
   .option('-n, --notify', 'display pop-over notifications in the browser', false)
   .option('-rh, --removeHeaderIncludes [removeHeaderIncludes...]', 'remove header includes', false)
-  .option('-rf, --removeFooterIncludes [removeFooterIncludes...]', 'remove footer includes', false);
+  .option('-rf, --removeFooterIncludes [removeFooterIncludes...]', 'remove footer includes', false)
+  .option('--host <hostname>', 'external hostname for tunnel access (e.g. xyz.trycloudflare.com) — makes BrowserSync rewrite URLs to the external host instead of localhost:3010');
 
 export default command;
