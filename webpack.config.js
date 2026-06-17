@@ -9,7 +9,7 @@ import WebpackObfuscatorPlugin from 'webpack-obfuscator';
 import RemoveEmptyScriptsPlugin from 'webpack-remove-empty-scripts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const outputDir = path.resolve(process.cwd(), 'dist');
+const outputDir = path.resolve(process.cwd(), 'dist-bender');
 
 const extensionsFilenames = {
   js: 'scripts',

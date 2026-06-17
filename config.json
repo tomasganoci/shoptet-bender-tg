@@ -1,5 +1,5 @@
 {
     "defaultUrl": "https://classic.shoptet.cz/",
     "sourceFolder": "./src",
-    "outputFolder": "./dist"
+    "outputFolder": "./dist-bender"
 }
