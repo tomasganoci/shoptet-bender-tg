@@ -1,5 +1,7 @@
 {
     "defaultUrl": "https://classic.shoptet.cz/",
     "sourceFolder": "./src",
-    "outputFolder": "./dist-bender"
+    "outputFolder": "./dist-bender",
+    "removeHeaderIncludes": ["tomasganoci"],
+    "removeFooterIncludes": ["tomasganoci"]
 }
