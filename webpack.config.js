@@ -88,21 +88,25 @@ export default env => {
           test: /\.js$/,
           use: ['babel-loader'],
         },
+        // css-loader s url: false - url() v šablonách míří na produkční cesty
+        // Shoptetu (/user/documents/...), které na disku nejsou; resolvovat je
+        // jako lokální moduly shazovalo build (salted.cz, 28. 8. 2026).
+        // Prohlížeč si je načte přes proxy z produkce.
         {
           test: /\.less$/i,
-          use: [MiniCssExtractPlugin.loader, 'css-loader', 'less-loader'],
+          use: [MiniCssExtractPlugin.loader, { loader: 'css-loader', options: { url: false } }, 'less-loader'],
         },
         {
           test: /\.scss$/i,
           use: [
             MiniCssExtractPlugin.loader,
-            'css-loader',
+            { loader: 'css-loader', options: { url: false } },
             { loader: 'sass-loader', options: { sassOptions: { outputStyle: 'expanded' } } },
           ],
         },
         {
           test: /\.css$/,
-          use: [MiniCssExtractPlugin.loader, 'css-loader'],
+          use: [MiniCssExtractPlugin.loader, { loader: 'css-loader', options: { url: false } }],
         },
         {
           test: /\.(png|jpe?g|gif|svg|woff2?|ttf|eot)$/,
