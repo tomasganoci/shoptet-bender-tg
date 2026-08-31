@@ -11,6 +11,7 @@ command
   .option('-b, --blankMode', 'simulate the blank template.', false)
   .option('-n, --notify', 'display pop-over notifications in the browser', false)
   .option('-rh, --removeHeaderIncludes [removeHeaderIncludes...]', 'remove header includes', false)
-  .option('-rf, --removeFooterIncludes [removeFooterIncludes...]', 'remove footer includes', false);
+  .option('-rf, --removeFooterIncludes [removeFooterIncludes...]', 'remove footer includes', false)
+  .option('-ra, --removeAssets [removeAssets...]', 'remove <script>/<link> tags whose URL contains any of these strings', false);
 
 export default command;

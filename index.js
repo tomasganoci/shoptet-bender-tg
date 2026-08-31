@@ -35,6 +35,20 @@ const blankModeScript = {
   },
 };
 
+// Odstranění konkrétních <script>/<link> tagů podle části jejich URL.
+// Na rozdíl od removeHeaderIncludes/removeFooterIncludes nemaže celý include blok
+// (v tom bývají i doplňky třetích stran), ale jen vyjmenované soubory — typicky
+// produkční bundle projektu, aby v Benderu neběžel souběžně s lokálním buildem
+// a nezdvojoval DOM úpravy.
+const removeAssetsPatterns = options.removeAssets || config.removeAssets || [];
+
+const removeAssets = {
+  match: /<script\b[^>]*\bsrc="[^"]*"[^>]*>\s*<\/script>|<link\b[^>]*\bhref="[^"]*"[^>]*>/gi,
+  fn: function (req, res, match) {
+    return removeAssetsPatterns.some(pattern => match.includes(pattern)) ? '' : match;
+  },
+};
+
 const headerIncludes = {
   match: /(?<=<head[\s\S]*?<!--\sUser include\s-->)[\s\S]*?(?=<!--\s\/User include\s-->)/i,
   fn: function (req, res, match) {
@@ -85,6 +99,7 @@ const rewriteRules = [
   { ...footerIncludes },
   { ...(options.blankMode && blankModeStyle) },
   { ...(options.blankMode && blankModeScript) },
+  { ...(removeAssetsPatterns.length && removeAssets) },
 ];
 
 const bsPlugin = [

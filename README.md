@@ -55,5 +55,20 @@ Try `shp-bender -h` for CLI help
 
 If you want to remove existing scripts and styles, you can use the `--removeHeaderIncludes` or `--removeFooterIncludes` flag followed by the string you want to remove. You can target for example number of the addon, or specific URL, project includes or comment in the script.
 
+Those two flags drop the **whole include block**, which usually contains third party addons as well. To remove only selected files, use `--removeAssets` (or the `removeAssets` key in the project's `config.json`) with a list of substrings — every `<script src>` / `<link href>` whose URL contains one of them is stripped, and the rest of the block stays untouched.
+
+The typical use case is the project's own production bundle: without it, the deployed build runs alongside the local one and every DOM change is applied twice.
+
+```json
+{
+  "defaultUrl": "https://www.example.com/",
+  "sourceFolder": "./src",
+  "outputFolder": "./dist-bender",
+  "removeAssets": ["myproject.js", "myproject.css"]
+}
+```
+
+> Note: `config.json` is read from the directory you run Bender in — the client project, not this repository.
+
 ## Possible tool improvements
 Shoptet Bender is an open-source project, and we’d love your help! Shoptet doesn’t have the resources to work on this tool continuously, so it’s a great chance for you to jump in and make it better. We’ve listed some feature ideas to get you started, but feel free to create your own. Even small updates can make a big difference, and your contributions are really valued!
