@@ -8,6 +8,7 @@ import path from 'path';
 import BrowserSyncPlugin from 'browser-sync-webpack-plugin';
 import webpack from 'webpack';
 import getWebpackConfig from './webpack.config.js';
+import { BENDER_PORT, VEREJNA_ADRESA, slugProjektu, zaregistrujNahled, zajistiRouter } from './nahled.js';
 
 command.parse(process.argv);
 
@@ -95,7 +96,7 @@ const footerIncludes = {
 };
 
 // Bender se běžně vystavuje ven přes tunel (u nás Cloudflare tunel na
-// projekt.tomasganoci.cz), takže se k náhledu dostanou i roboti vyhledávačů.
+// project.tomasganoci.cz přes router, viz nahled.js), takže se k náhledu dostanou i roboti vyhledávačů.
 // Náhled je kopie klientova e-shopu, do indexu se dostat nesmí: duplikuje obsah
 // produkce a odhaluje rozpracované úpravy. Každá odpověď proto nese noindex,
 // robots.txt zakazuje celý náhled a do <head> jde meta robots jako pojistka
@@ -105,7 +106,12 @@ const ROBOTS_TAG = 'noindex, nofollow, noarchive, nosnippet, noimageindex';
 const ROBOTS_TXT = 'User-agent: *\nDisallow: /\n';
 
 // Hlavička na všechno, co projde proxy (HTML e-shopu).
+// Shoptet posílá HTML jako chunked a BrowserSync po přepisu doplní
+// Content-Length, aniž by Transfer-Encoding odebral. Taková odpověď je
+// nevalidní a striktní klient (router náhledu, Node) ji zahodí. Bez
+// Transfer-Encoding si Node u odpovědí bez délky chunked doplní sám.
 const proxyNoindex = proxyRes => {
+  delete proxyRes.headers['transfer-encoding'];
   proxyRes.headers['x-robots-tag'] = ROBOTS_TAG;
 };
 
@@ -149,18 +155,36 @@ const rewriteRules = [
 ];
 
 const bsPlugin = [
-  new BrowserSyncPlugin({
-    proxy: { target: options.remote ?? config.defaultUrl, proxyRes: [proxyNoindex] },
-    middleware: [noindexMiddleware],
-    serveStatic: [outputFolder],
-    serveStaticOptions: {
-      setHeaders: res => res.setHeader('X-Robots-Tag', ROBOTS_TAG),
+  new BrowserSyncPlugin(
+    {
+      proxy: { target: options.remote ?? config.defaultUrl, proxyRes: [proxyNoindex] },
+      middleware: [noindexMiddleware],
+      serveStatic: [outputFolder],
+      serveStaticOptions: {
+        setHeaders: res => res.setHeader('X-Robots-Tag', ROBOTS_TAG),
+      },
+      rewriteRules: rewriteRules.filter(value => Object.keys(value).length !== 0),
+      // Port 3010 patří routeru veřejného náhledu (nahled.js). BrowserSync
+      // vezme první volný port od BENDER_PORT.
+      port: BENDER_PORT,
+      notify: options.notify,
+      open: false,
     },
-    rewriteRules: rewriteRules.filter(value => Object.keys(value).length !== 0),
-    port: 3010,
-    notify: options.notify,
-    open: false,
-  }),
+    {
+      callback: (err, bs) => {
+        if (err) return;
+        const slug = slugProjektu(rootDir);
+        zaregistrujNahled(slug, bs.options.get('port'));
+        zajistiRouter().then(ok => {
+          console.log(
+            ok
+              ? `\n  Náhled pro klienta: ${VEREJNA_ADRESA}/?nahled=${slug}\n`
+              : '\n  Router náhledu neběží (port 3010 drží něco jiného, třeba starý Bender). Náhled je jen lokálně.\n'
+          );
+        });
+      },
+    }
+  ),
 ];
 
 const baseWebpackConfig = getWebpackConfig('development');

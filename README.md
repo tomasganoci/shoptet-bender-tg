@@ -70,5 +70,20 @@ The typical use case is the project's own production bundle: without it, the dep
 
 > Note: `config.json` is read from the directory you run Bender in — the client project, not this repository.
 
+### Public preview for the client (fork tomasganoci)
+
+Cloudflare tunnel `project.tomasganoci.cz` points to `localhost:3010`. Port 3010 belongs to a small router (`router.js`), Benders themselves start at port 3020 (BrowserSync takes the next free one). Every Bender registers its port in `~/.shoptet-bender/nahledy.json` under the project slug (folder name without `.cz`, `.sk`, ...) and starts the router in the background if it is not running yet. After start it prints the link for the client:
+
+```
+Náhled pro klienta: https://project.tomasganoci.cz/?nahled=proterasy
+```
+
+- `?nahled=<slug>` sets the `bender_nahled` cookie and redirects to the same URL without the parameter, so the client can click through the whole shop.
+- Without the cookie the router uses the only running Bender, if exactly one runs.
+- Unknown or stopped project shows "Náhled teď neběží"; the list of projects is never exposed.
+- One browser shows one project at a time; another `?nahled=` link switches it.
+- No new hostname in Cloudflare is needed for a new project.
+- The router listens on loopback only and accepts both http and https on the same port. `BENDER_ROUTER_PORT` overrides the port for testing.
+
 ## Possible tool improvements
 Shoptet Bender is an open-source project, and we’d love your help! Shoptet doesn’t have the resources to work on this tool continuously, so it’s a great chance for you to jump in and make it better. We’ve listed some feature ideas to get you started, but feel free to create your own. Even small updates can make a big difference, and your contributions are really valued!
