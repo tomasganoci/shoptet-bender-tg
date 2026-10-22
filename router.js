@@ -36,8 +36,18 @@ const tls = {
 
 const proxy = httpProxy.createProxyServer({ secure: false, ws: true, xfwd: true });
 
-const zive = () =>
-  Object.fromEntries(Object.entries(nactiRegistr()).filter(([, zaznam]) => zaznam?.port && procesZije(zaznam.pid)));
+// Živé záznamy. Když víc živých sdílí port (pid zapomenutého záznamu se po
+// recyklaci na Windows může zdát živý), platí nejnovější: port drží jen jeden
+// proces a ten se zaregistroval poslední.
+const zive = () => {
+  const podlePortu = new Map();
+  for (const [slug, zaznam] of Object.entries(nactiRegistr())) {
+    if (!zaznam?.port || !procesZije(zaznam.pid)) continue;
+    const jiny = podlePortu.get(zaznam.port);
+    if (!jiny || String(zaznam.start) > String(jiny[1].start)) podlePortu.set(zaznam.port, [slug, zaznam]);
+  }
+  return Object.fromEntries(podlePortu.values());
+};
 
 const cookieZ = req => {
   const m = (req.headers.cookie || '').match(new RegExp('(?:^|;\\s*)' + COOKIE + '=([a-z0-9-]+)'));

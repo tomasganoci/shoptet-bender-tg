@@ -42,11 +42,75 @@ export const nactiRegistr = () => {
   }
 };
 
+const ZAMEK = REGISTR + '.lock';
+const ZAMEK_ZASTARALY_MS = 10000;
+// BENDER_OBNOVA_MS jen pro test.
+const OBNOVA_MS = Number(process.env.BENDER_OBNOVA_MS) || 30000;
+
+const pockej = ms => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+
+// Na Windows hází čtení i rename EPERM/EBUSY, když soubor zrovna drží jiný proces.
+const opakuj = (fn, pokusu = 20) => {
+  for (let i = 1; ; i++) {
+    try {
+      return fn();
+    } catch (e) {
+      if (i >= pokusu || !['EPERM', 'EBUSY', 'EACCES'].includes(e.code)) throw e;
+      pockej(25);
+    }
+  }
+};
+
+// Pro zapisovatele: chybějící registr je prázdný, ale nečitelný registr je chyba.
+// Kdyby se vrátilo {}, zápis by smazal záznamy ostatních Benderů.
+const nactiRegistrProZapis = () => {
+  let text;
+  try {
+    text = opakuj(() => fs.readFileSync(REGISTR, 'utf8'));
+  } catch (e) {
+    if (e.code === 'ENOENT') return {};
+    throw e;
+  }
+  return text.trim() ? JSON.parse(text) : {};
+};
+
 const ulozRegistr = data => {
-  fs.mkdirSync(REGISTR_SLOZKA, { recursive: true });
   const docasny = REGISTR + '.' + process.pid + '.tmp';
   fs.writeFileSync(docasny, JSON.stringify(data, null, 2));
-  fs.renameSync(docasny, REGISTR);
+  opakuj(() => fs.renameSync(docasny, REGISTR));
+};
+
+const zamkni = () => {
+  fs.mkdirSync(REGISTR_SLOZKA, { recursive: true });
+  const konec = Date.now() + 3000;
+  for (;;) {
+    try {
+      fs.closeSync(fs.openSync(ZAMEK, 'wx'));
+      return;
+    } catch (e) {
+      if (e.code !== 'EEXIST' && e.code !== 'EPERM') throw e;
+    }
+    try {
+      // Zámek po natvrdo ukončeném procesu.
+      if (Date.now() - fs.statSync(ZAMEK).mtimeMs > ZAMEK_ZASTARALY_MS) fs.unlinkSync(ZAMEK);
+    } catch {}
+    if (Date.now() > konec) throw new Error('Registr náhledů je zamčený: ' + ZAMEK);
+    pockej(20 + Math.random() * 30);
+  }
+};
+
+// Celé čtení, úprava a zápis registru pod zámkem, aby si Bendery nepřepsaly
+// záznamy starým snapshotem. fn vrací true, když registr změnila.
+const aktualizujRegistr = fn => {
+  zamkni();
+  try {
+    const registr = nactiRegistrProZapis();
+    if (fn(registr)) ulozRegistr(registr);
+  } finally {
+    try {
+      fs.unlinkSync(ZAMEK);
+    } catch {}
+  }
 };
 
 export const procesZije = pid => {
@@ -58,21 +122,62 @@ export const procesZije = pid => {
   }
 };
 
+// Smaže záznamy mrtvých procesů a cizí záznamy s naším portem (port drží
+// jen jeden proces, takže jsou zastaralé, i když jejich pid po recyklaci žije).
+const uklid = (registr, slug, port) => {
+  let zmena = false;
+  for (const [jiny, zaznam] of Object.entries(registr)) {
+    if (jiny === slug) continue;
+    if (!zaznam?.port || !procesZije(zaznam.pid) || zaznam.port === port) {
+      delete registr[jiny];
+      zmena = true;
+    }
+  }
+  return zmena;
+};
+
 export const zaregistrujNahled = (slug, port) => {
-  const registr = nactiRegistr();
-  registr[slug] = { port, pid: process.pid, cwd: process.cwd(), start: new Date().toISOString() };
-  ulozRegistr(registr);
+  const muj = { port, pid: process.pid, cwd: process.cwd(), start: new Date().toISOString() };
+  const zapis = registr => {
+    registr[slug] = { ...muj };
+    uklid(registr, slug, port);
+    return true;
+  };
+  try {
+    aktualizujRegistr(zapis);
+  } catch (e) {
+    console.warn('Náhled: zápis do registru selhal, zkusím to znovu za 30 s.', e.message);
+  }
+
+  // Heartbeat: když vlastní záznam zmizí nebo ho přepsal proces, který už
+  // neběží nebo nedrží náš port, vrátí ho zpátky. Živý Bender stejného projektu
+  // na jiném portu má přednost (spustil se později).
+  const obnova = setInterval(() => {
+    try {
+      aktualizujRegistr(registr => {
+        const zaznam = registr[slug];
+        const prepsat =
+          zaznam?.pid !== process.pid && (!zaznam?.port || !procesZije(zaznam.pid) || zaznam.port === port);
+        if (prepsat) registr[slug] = { ...muj };
+        return uklid(registr, slug, port) || prepsat;
+      });
+    } catch {
+      // Další pokus za OBNOVA_MS.
+    }
+  }, OBNOVA_MS);
+  obnova.unref();
 
   let odhlaseno = false;
   const odhlas = () => {
     if (odhlaseno) return;
     odhlaseno = true;
+    clearInterval(obnova);
     try {
-      const aktualni = nactiRegistr();
-      if (aktualni[slug]?.pid === process.pid) {
+      aktualizujRegistr(aktualni => {
+        if (aktualni[slug]?.pid !== process.pid) return false;
         delete aktualni[slug];
-        ulozRegistr(aktualni);
-      }
+        return true;
+      });
     } catch {
       // Registr se uklidí i sám: router ignoruje záznamy s mrtvým pid.
     }
