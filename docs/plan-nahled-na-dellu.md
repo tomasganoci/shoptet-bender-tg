@@ -10,8 +10,12 @@ Stav: **SCHVÁLENO 2. 11. 2026, rozpracováno.**
   `tg-shoptet-frontend` (salted.cz z něj importuje `domReady.js`, klon
   v `/opt/nahled/tg-shoptet-frontend`, alias `gh-tsf` v
   `/var/lib/nahled/.ssh/config`). `npm ci` Benderu chce `--legacy-peer-deps`.
-- Čeká: přihlášení Tomáše do Cloudflare dashboardu (Access), e-mail
-  klientky pro policy. Pak C, přepnutí DNS (B3), test, vypnutí PC (B4).
+- Hotovo (2. 11.): C (Access app `Náhled Bender`, policy `nahled-salted`
+  zatím jen `info@tomasganoci.cz`, tým `patient-waterfall-e402`, curl bez
+  přihlášení 302 i na `robots.txt` a `favicon.ico`), B3 (DNS na
+  `nahled-dell`), B4 (PC tunel `Shoptet-Bender` už nevede nic; služba Windows
+  běží dál, zastavit jde jen s právy správce).
+- Čeká: e-mail klientky do policy, test po přihlášení z jiné sítě, F (GSC).
 
 ## Cíl
 
