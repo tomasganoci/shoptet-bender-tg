@@ -100,7 +100,7 @@ const obsluha = (req, res) => {
   if (!zaznam) return nebezi(res);
 
   // Host necháváme původní: podle něj BrowserSync přepisuje odkazy e-shopu.
-  proxy.web(req, res, { target: 'https://localhost:' + zaznam.port }, () => {
+  proxy.web(req, res, { target: 'https://' + BENDER_HOST + ':' + zaznam.port }, () => {
     if (!res.headersSent) nebezi(res);
     else res.end();
   });
@@ -109,8 +109,12 @@ const obsluha = (req, res) => {
 const upgrade = (req, socket, head) => {
   const zaznam = cil(req);
   if (!zaznam) return socket.destroy();
-  proxy.ws(req, socket, head, { target: 'https://localhost:' + zaznam.port }, () => socket.destroy());
+  proxy.ws(req, socket, head, { target: 'https://' + BENDER_HOST + ':' + zaznam.port }, () => socket.destroy());
 };
+
+// Na serveru poslouchá Bender jen na BENDER_LISTEN (127.0.0.1), localhost by
+// se mohl přeložit na ::1.
+const BENDER_HOST = process.env.BENDER_LISTEN || 'localhost';
 
 const httpServer = http.createServer(obsluha).on('upgrade', upgrade);
 const httpsServer = https.createServer(tls, obsluha).on('upgrade', upgrade);

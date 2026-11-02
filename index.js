@@ -169,6 +169,8 @@ const bsPlugin = [
       port: BENDER_PORT,
       notify: options.notify,
       open: false,
+      // Na serveru (Dell) jen loopback a bez UI, ven vede jen router za tunelem.
+      ...(process.env.BENDER_LISTEN ? { listen: process.env.BENDER_LISTEN, ui: false } : {}),
     },
     {
       callback: (err, bs) => {
