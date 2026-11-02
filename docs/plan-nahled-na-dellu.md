@@ -1,6 +1,17 @@
 # Plán: veřejný náhled Benderu na Dellu za Cloudflare Access
 
-Stav: **NÁVRH, čeká na schválení Tomášem** (30. 10. 2026).
+Stav: **SCHVÁLENO 2. 11. 2026, rozpracováno.**
+
+- Hotovo (2. 11.): A (Dell: `bender-router`, `bender@salted.cz`, timery
+  `bender-pull@{salted.cz,tg-shoptet-frontend,shoptet-bender}`, kompiluje
+  bez chyb), tunel `nahled-dell` (`eac0b9f6-e7cd-4c37-9d39-004f9e2dfee8`)
+  běží s `/etc/cloudflared/config.yml`, DNS zatím **nepřepnuté**.
+  Deploy keys `dell-nahled` (read-only) v `salted.cz` a
+  `tg-shoptet-frontend` (salted.cz z něj importuje `domReady.js`, klon
+  v `/opt/nahled/tg-shoptet-frontend`, alias `gh-tsf` v
+  `/var/lib/nahled/.ssh/config`). `npm ci` Benderu chce `--legacy-peer-deps`.
+- Čeká: přihlášení Tomáše do Cloudflare dashboardu (Access), e-mail
+  klientky pro policy. Pak C, přepnutí DNS (B3), test, vypnutí PC (B4).
 
 ## Cíl
 
