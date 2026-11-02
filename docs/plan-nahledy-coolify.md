@@ -1,13 +1,34 @@
 # Plán: náhledy klientů jako aplikace v Coolify (hostname na klienta, webhook)
 
-Stav: **SCHVÁLENO 2. 11. 2026, provádí se.**
+Stav: **HOTOVO 2. 11. 2026** (zbývá jen GSC, dělá Tomáš).
 
 - Hotovo: krok 1 (Bender 957ef04, image `ghcr.io/tomasganoci/bender-nahled:1`
   veřejný, ověřeno `docker run` na Dellu: kompilace OK, noindex, vložené
   skripty), krok 3 (salted.cz 3dd280b: `.nahled/Dockerfile`, `.dockerignore`,
   submodul `.nahled/tg-shoptet-frontend` přes HTTPS).
-- Čeká: krok 2 (Tomáš se přihlásí do Coolify, založí GitHub App).
-- Zbývá: 4 až 7.
+- Hotovo: krok 2 (GitHub App `coolify-tomasganoci`, uuid
+  `ak3wfaeqbzytw06xzzmeqti8`, App ID 5577333, instalace 177771648 na
+  `salted.cz` a `tg-shoptet-frontend`, jen čtení obsahu).
+- Krok 4 (2. 11.): aplikace `nahled-salted` `m5mh2sewnhpqplcq7lunicxg`
+  v projektu `klientske-projekty` (production). Past: REST API Coolify
+  bere `ports_mappings` jen jako `port:port` (regex v `bootstrap/helpers/api.php`),
+  IP binding `127.0.0.1:3101:3020` jde uložit jen formulářem v UI
+  (General > Ports Mappings).
+- Krok 5 (2. 11.): Access aplikace `Náhled salted` (`fc5ff310-…`,
+  `nahled-salted.tomasganoci.cz`, policy `nahled-salted`, jen OTP, Instant
+  Auth, session 1 měsíc), DNS a ingress `https://127.0.0.1:3101`
+  s `noTLSVerify` (Bender v kontejneru jede HTTPS). Bez přihlášení 302 i na
+  `robots.txt` a `scripts.footer.js`.
+- Krok 6 (2. 11.): Redirect Rule `nahled salted presmerovani` (zóna
+  `tomasganoci.cz`, 302, `project.tomasganoci.cz` s `nahled=salted` ->
+  `https://nahled-salted.tomasganoci.cz/`). Access na `project` odpovídá
+  dřív než přesměrování, takže starý odkaz chce přihlášení dvakrát (stejný
+  tým, druhé bývá bez kódu). Na Dellu `systemctl disable --now` pro
+  `bender-router`, `bender@salted.cz` a timery `bender-pull@*` (unit
+  soubory a `/opt/nahled/` zůstaly pro návrat), deploy keys `dell-nahled`
+  smazané. Ingress `project.tomasganoci.cz` zůstal (bez něj by DNS
+  záznam neměl kam vést, přesměrování se děje na hraně).
+- Krok 7: viz konec souboru (ověření webhooku).
 
 Původně: návrh, nic z toho neběželo. Navazuje na `plan-nahled-na-dellu.md` (systemd na Dellu, hotovo),
 který zůstává v provozu, dokud tenhle plán neprojde krokem 6.
@@ -199,10 +220,13 @@ na `project.` nic jiného, router a Access app `Náhled Bender` zrušit.
    `coolify-tomasganoci` > Configure). Tomáš, jeden klik.
 3. Coolify: nová aplikace z repa, větev, build pack Dockerfile
    `.nahled/Dockerfile`, port mapping `127.0.0.1:31NN:3020`, auto deploy
-   zapnutý. (Přes MCP `create_application`, udělám já.)
+   zapnutý. (Přes MCP `create_application`, udělám já.) Port mapping
+   s IP jde uložit jen formulářem v UI (General > Ports Mappings), REST API
+   ho odmítne.
 4. Access policy `nahled-<projekt>` s e-maily klienta, Access aplikace
    `Náhled <projekt>` (formulář v dashboardu, API zápis blokuje WAF).
-5. DNS a řádek v ingress tunelu (SSH na Dell, udělám já).
+5. DNS a řádek v ingress tunelu (SSH na Dell, udělám já):
+   `service: https://127.0.0.1:31NN` s `originRequest.noTLSVerify: true`.
 6. Odkaz klientovi: `https://nahled-<projekt>.tomasganoci.cz`.
 
 ## Pořadí provedení po schválení

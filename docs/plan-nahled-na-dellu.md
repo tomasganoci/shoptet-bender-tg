@@ -1,6 +1,8 @@
 # Plán: veřejný náhled Benderu na Dellu za Cloudflare Access
 
-Stav: **HOTOVO 2. 11. 2026** (zbývá jen F, GSC dělá Tomáš).
+Stav: **HOTOVO 2. 11. 2026** (zbývá jen F, GSC dělá Tomáš). **Nahrazeno
+týž den** plánem `plan-nahledy-coolify.md` (kontejner v Coolify, hostname
+na klienta); systemd unity níž jsou vypnuté, deploy keys smazané.
 
 - Hotovo (2. 11.): A (Dell: `bender-router`, `bender@salted.cz`, timery
   `bender-pull@{salted.cz,tg-shoptet-frontend,shoptet-bender}`, kompiluje
