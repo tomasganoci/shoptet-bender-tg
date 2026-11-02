@@ -1,6 +1,6 @@
 # Plán: veřejný náhled Benderu na Dellu za Cloudflare Access
 
-Stav: **HOTOVO 2. 11. 2026** (zbývá jen F, GSC dělá Tomáš). **Nahrazeno
+Stav: **HOTOVO 2. 11. 2026** (F: Tomáš 2. 11. požádal v GSC o odstranění `project.tomasganoci.cz`). **Nahrazeno
 týž den** plánem `plan-nahledy-coolify.md` (kontejner v Coolify, hostname
 na klienta); systemd unity níž jsou vypnuté, deploy keys smazané.
 
@@ -20,7 +20,7 @@ na klienta); systemd unity níž jsou vypnuté, deploy keys smazané.
 - Hotovo (2. 11.): e-mail klientky v policy, Tomáš ověřil přihlášení z jiné
   sítě. Zápis do policy jde jen přes formulář v dashboardu, API ze skriptu
   v prohlížeči (PUT) blokuje WAF Cloudflare.
-- Čeká: F (GSC, Tomáš).
+- Hotovo (2. 11.): F, žádost o dočasné odstranění předpony v GSC (Tomáš).
 
 ## Cíl
 

@@ -1,6 +1,6 @@
 # Plán: náhledy klientů jako aplikace v Coolify (hostname na klienta, webhook)
 
-Stav: **HOTOVO 2. 11. 2026** (zbývá jen GSC, dělá Tomáš).
+Stav: **HOTOVO 2. 11. 2026** (GSC: Tomáš 2. 11. požádal o odstranění předpony `project.tomasganoci.cz`).
 
 - Hotovo: krok 1 (Bender 957ef04, image `ghcr.io/tomasganoci/bender-nahled:1`
   veřejný, ověřeno `docker run` na Dellu: kompilace OK, noindex, vložené
