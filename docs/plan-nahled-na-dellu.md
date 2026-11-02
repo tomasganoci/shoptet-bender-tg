@@ -1,6 +1,6 @@
 # Plán: veřejný náhled Benderu na Dellu za Cloudflare Access
 
-Stav: **SCHVÁLENO 2. 11. 2026, rozpracováno.**
+Stav: **HOTOVO 2. 11. 2026** (zbývá jen F, GSC dělá Tomáš).
 
 - Hotovo (2. 11.): A (Dell: `bender-router`, `bender@salted.cz`, timery
   `bender-pull@{salted.cz,tg-shoptet-frontend,shoptet-bender}`, kompiluje
@@ -11,11 +11,14 @@ Stav: **SCHVÁLENO 2. 11. 2026, rozpracováno.**
   v `/opt/nahled/tg-shoptet-frontend`, alias `gh-tsf` v
   `/var/lib/nahled/.ssh/config`). `npm ci` Benderu chce `--legacy-peer-deps`.
 - Hotovo (2. 11.): C (Access app `Náhled Bender`, policy `nahled-salted`
-  zatím jen `info@tomasganoci.cz`, tým `patient-waterfall-e402`, curl bez
+  `info@tomasganoci.cz` a `marketa@salted.cz`, tým `patient-waterfall-e402`, curl bez
   přihlášení 302 i na `robots.txt` a `favicon.ico`), B3 (DNS na
   `nahled-dell`), B4 (PC tunel `Shoptet-Bender` už nevede nic; služba Windows
   běží dál, zastavit jde jen s právy správce).
-- Čeká: e-mail klientky do policy, test po přihlášení z jiné sítě, F (GSC).
+- Hotovo (2. 11.): e-mail klientky v policy, Tomáš ověřil přihlášení z jiné
+  sítě. Zápis do policy jde jen přes formulář v dashboardu, API ze skriptu
+  v prohlížeči (PUT) blokuje WAF Cloudflare.
+- Čeká: F (GSC, Tomáš).
 
 ## Cíl
 
