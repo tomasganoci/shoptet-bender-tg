@@ -175,6 +175,8 @@ const bsPlugin = [
     {
       callback: (err, bs) => {
         if (err) return;
+        // V kontejneru náhledu (Coolify) vede na Bender rovnou tunel, registr ani router nejsou.
+        if (process.env.BENDER_BEZ_ROUTERU) return;
         const slug = slugProjektu(rootDir);
         zaregistrujNahled(slug, bs.options.get('port'));
         zajistiRouter().then(ok => {

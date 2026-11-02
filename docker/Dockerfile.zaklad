@@ -1,0 +1,15 @@
+# Základní image náhledu Benderu pro Coolify (viz docs/plan-nahledy-coolify.md).
+# Obsahuje jen Bender s nainstalovanými závislostmi. Repo klienta přidá
+# Dockerfile v jeho repu (.nahled/Dockerfile): FROM tohoto image + COPY.
+FROM node:20-bookworm-slim
+LABEL org.opencontainers.image.source=https://github.com/tomasganoci/shoptet-bender-tg
+
+WORKDIR /opt/bender
+COPY package.json package-lock.json ./
+RUN npm ci --legacy-peer-deps --omit=dev && npm cache clean --force
+COPY . .
+
+# Bender poslouchá na všech rozhraních kontejneru, ven ho publikuje jen
+# port mapping na loopback Dellu. Registr a router náhledu se nespouští.
+ENV BENDER_LISTEN=0.0.0.0 BENDER_BEZ_ROUTERU=1
+EXPOSE 3020
