@@ -1,7 +1,15 @@
 # Plán: náhledy klientů jako aplikace v Coolify (hostname na klienta, webhook)
 
-Stav: **NÁVRH 2. 11. 2026, čeká na schválení Tomášem.** Nic z toho ještě
-neběží. Navazuje na `plan-nahled-na-dellu.md` (systemd na Dellu, hotovo),
+Stav: **SCHVÁLENO 2. 11. 2026, provádí se.**
+
+- Hotovo: krok 1 (Bender 957ef04, image `ghcr.io/tomasganoci/bender-nahled:1`
+  veřejný, ověřeno `docker run` na Dellu: kompilace OK, noindex, vložené
+  skripty), krok 3 (salted.cz 3dd280b: `.nahled/Dockerfile`, `.dockerignore`,
+  submodul `.nahled/tg-shoptet-frontend` přes HTTPS).
+- Čeká: krok 2 (Tomáš se přihlásí do Coolify, založí GitHub App).
+- Zbývá: 4 až 7.
+
+Původně: návrh, nic z toho neběželo. Navazuje na `plan-nahled-na-dellu.md` (systemd na Dellu, hotovo),
 který zůstává v provozu, dokud tenhle plán neprojde krokem 6.
 
 ## Proč měnit to, co funguje
