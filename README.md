@@ -85,5 +85,16 @@ Náhled pro klienta: https://project.tomasganoci.cz/?nahled=proterasy
 - No new hostname in Cloudflare is needed for a new project.
 - The router listens on loopback only and accepts both http and https on the same port. `BENDER_ROUTER_PORT` overrides the port for testing.
 
+### Before/after comparison (fork tomasganoci)
+
+`/__porovnani` on any running Bender (locally `https://localhost:3020/__porovnani`, on a preview e.g. `https://nahled-svetpeceni.tomasganoci.cz/__porovnani`) shows the live shop without our changes ("Před") next to the shop with the changes from Bender ("Po"). Code: `porovnani.js`.
+
+- `?url=/kategorie/` opens a given page; the address field also accepts a full shop URL.
+- Both sides follow the same page: a click in either side navigates the other one too. Scrolling is shared by page-height ratio ("Posouvat spolu").
+- "Přepínat" shows one side at full width, the button or key P switches Před/Po.
+- "Šířka stránky" renders the page at 390 / 820 / 1180 / 1440 / 1920 px and scales it down to fit.
+- The "Před" side is served by Bender under the `/__puvodni/` prefix: the request goes to the shop as usual, but none of the rewrite rules for our includes run, so the HTML codes (header/footer, including the production bundle) stay as in production. Both frames are same-origin with the comparison page, which is why the live shop's `X-Frame-Options: SAMEORIGIN` does not block them.
+- BrowserSync ghost mode (mirroring clicks and scroll between clients) is turned off, otherwise preview visitors would mirror each other and the two sides would fight over scrolling.
+
 ## Possible tool improvements
 Shoptet Bender is an open-source project, and we’d love your help! Shoptet doesn’t have the resources to work on this tool continuously, so it’s a great chance for you to jump in and make it better. We’ve listed some feature ideas to get you started, but feel free to create your own. Even small updates can make a big difference, and your contributions are really valued!

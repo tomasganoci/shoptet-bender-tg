@@ -9,6 +9,7 @@ import BrowserSyncPlugin from 'browser-sync-webpack-plugin';
 import webpack from 'webpack';
 import getWebpackConfig from './webpack.config.js';
 import { BENDER_PORT, VEREJNA_ADRESA, slugProjektu, zaregistrujNahled, zajistiRouter } from './nahled.js';
+import { porovnaniMiddleware, jePuvodni } from './porovnani.js';
 
 command.parse(process.argv);
 
@@ -46,6 +47,7 @@ const removeAssetsPatterns = options.removeAssets || config.removeAssets || [];
 const removeAssets = {
   match: /<script\b[^>]*\bsrc="[^"]*"[^>]*>\s*<\/script>|<link\b[^>]*\bhref="[^"]*"[^>]*>/gi,
   fn: function (req, res, match) {
+    if (jePuvodni(req)) return match;
     return removeAssetsPatterns.some(pattern => match.includes(pattern)) ? '' : match;
   },
 };
@@ -53,6 +55,8 @@ const removeAssets = {
 const headerIncludes = {
   match: /(?<=<head[\s\S]*?<!--\sUser include\s-->)[\s\S]*?(?=<!--\s\/User include\s-->)/i,
   fn: function (req, res, match) {
+    // Strana "Před" v porovnání (porovnani.js): HTML kódy jako na produkci.
+    if (jePuvodni(req)) return match;
     // Remove includes from the header
     const includes = options.removeHeaderIncludes || config.removeHeaderIncludes || [];
     const matchedServices = match.match(includesCodeRegex);
@@ -76,6 +80,7 @@ const footerIncludes = {
   match:
     /(?<=<body[\s\S]*?<!--\sUser include\s-->\s*<div class="container">)[\s\S]*?(?=<\/div>\s*<!--\s\/User include\s-->)/i,
   fn: function (req, res, match) {
+    if (jePuvodni(req)) return match;
     // Remove includes from the footer
     const includes = options.removeFooterIncludes || config.removeFooterIncludes || [];
     const matchedServices = match.match(includesCodeRegex);
@@ -158,7 +163,11 @@ const bsPlugin = [
   new BrowserSyncPlugin(
     {
       proxy: { target: options.remote ?? config.defaultUrl, proxyRes: [proxyNoindex] },
-      middleware: [noindexMiddleware],
+      middleware: [noindexMiddleware, porovnaniMiddleware],
+      // Zrcadlení kliků a posunu mezi klienty BrowserSync vypnuto: na veřejném
+      // náhledu by se jeden návštěvník promítal druhému a v porovnání
+      // (/__porovnani) by se obě strany přetahovaly s vlastním posunem.
+      ghostMode: false,
       serveStatic: [outputFolder],
       serveStaticOptions: {
         setHeaders: res => res.setHeader('X-Robots-Tag', ROBOTS_TAG),
