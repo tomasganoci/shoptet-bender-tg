@@ -25,14 +25,16 @@ const includesCodeRegex = new RegExp(includesRegex.source + '[\\s\\S]*?(?=' + in
 
 const blankModeStyle = {
   match: /<link\s+href="https:\/\/cdn\.myshoptet\.com\/prj\/[^"]+"[^>]*>/gi,
-  fn: function () {
+  fn: function (req, res, match) {
+    if (jePuvodni(req)) return match;
     return '';
   },
 };
 
 const blankModeScript = {
   match: /<script\s+src="https:\/\/cdn\.myshoptet\.com\/prj\/[^"]+"[^>]*>/gi,
-  fn: function () {
+  fn: function (req, res, match) {
+    if (jePuvodni(req)) return match;
     return '';
   },
 };

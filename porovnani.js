@@ -39,10 +39,6 @@ export const porovnaniMiddleware = (req, res, next) => {
     req.url = url.slice(PREDPONA_PUVODNI.length) || '/';
     if (req.url[0] !== '/') req.url = '/' + req.url;
     req.tgPuvodni = true;
-    // Shoptet by na jiné verzi stránky mohl vrátit 304 z mezipaměti
-    // prohlížeče sdílené s verzí "Po".
-    delete req.headers['if-none-match'];
-    delete req.headers['if-modified-since'];
   }
   next();
 };
@@ -134,8 +130,16 @@ const STRANKA = `<!doctype html>
     text = (text || '').trim();
     if (!text) return '/';
     try { var u = new URL(text, location.origin); text = u.pathname + u.search + u.hash; } catch (e) {}
-    if (text.indexOf(PREDPONA) === 0) text = text.slice(PREDPONA.length) || '/';
-    return text[0] === '/' ? text : '/' + text;
+    if (text === PREDPONA || text.indexOf(PREDPONA + '/') === 0) text = text.slice(PREDPONA.length) || '/';
+    return text;
+  }
+
+  // Jen cesta na tomhle náhledu. Cesta začínající // (třeba po normalizaci
+  // /a/..//cizi.cz/) by v src rámečku načetla cizí web.
+  function bezpecna(text) {
+    text = '/' + String(text || '').replace(/^[\/\]+/, '');
+    try { if (new URL(text, location.origin).origin !== location.origin) return '/'; } catch (e) { return '/'; }
+    return text;
   }
 
   function cestaRamce(ramec) {
@@ -143,7 +147,7 @@ const STRANKA = `<!doctype html>
   }
 
   function otevri(nova, zapsat) {
-    cesta = nova;
+    cesta = bezpecna(nova);
     adresa.value = cesta;
     if (cestaRamce(po) !== cesta) po.src = cesta;
     if (cestaRamce(pred) !== PREDPONA + cesta) pred.src = PREDPONA + cesta;
@@ -162,7 +166,7 @@ const STRANKA = `<!doctype html>
   pred.addEventListener('load', function () {
     var c = cestaRamce(pred);
     if (c === null) return;
-    if (c.indexOf(PREDPONA) !== 0) { otevri(c); pred.src = PREDPONA + c; return; }
+    if (c !== PREDPONA && c.indexOf(PREDPONA + '/') !== 0) { otevri(c); return; }
     var bez = c.slice(PREDPONA.length) || '/';
     if (bez !== cesta) otevri(bez);
     napoj(pred, po);
@@ -177,6 +181,7 @@ const STRANKA = `<!doctype html>
     try { w = zdroj.contentWindow; w.document; } catch (e) { return; }
     if (w.__tgPorovnani) return;
     w.__tgPorovnani = true;
+    w.addEventListener('keydown', klavesa);
     w.addEventListener('scroll', function () {
       if (w.__tgNastaveno !== undefined) {
         var nase = Math.abs(w.scrollY - w.__tgNastaveno) <= 2;
@@ -237,9 +242,15 @@ const STRANKA = `<!doctype html>
   sirka.addEventListener('change', function () { uloz('sirka', sirka.value); zmer(); });
   posun.addEventListener('change', function () { uloz('posun', posun.checked ? '1' : '0'); });
   window.addEventListener('resize', zmer);
-  document.addEventListener('keydown', function (e) {
-    if ((e.key === 'p' || e.key === 'P') && e.target === document.body && rezimPrepinat) ukaz(!ukazPred);
-  });
+  // Klávesa P i s fokusem na tlačítku nebo v rámečku, jen ne při psaní.
+  function klavesa(e) {
+    if (e.key !== 'p' && e.key !== 'P') return;
+    if (e.ctrlKey || e.metaKey || e.altKey || !rezimPrepinat) return;
+    var t = e.target;
+    if (t && t.closest && t.closest('input, select, textarea, [contenteditable]')) return;
+    ukaz(!ukazPred);
+  }
+  document.addEventListener('keydown', klavesa);
 
   // Výchozí šířka: na velké obrazovce notebook 1440 px (zmenšený), jinak podle okna.
   sirka.value = ulozeno('sirka', window.innerWidth >= 1000 ? '1440' : '0');
