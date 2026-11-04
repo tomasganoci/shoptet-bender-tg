@@ -227,7 +227,10 @@ na `project.` nic jiného, router a Access app `Náhled Bender` zrušit.
    `Náhled <projekt>` (formulář v dashboardu, API zápis blokuje WAF).
 5. DNS a řádek v ingress tunelu (SSH na Dell, udělám já):
    `service: https://127.0.0.1:31NN` s `originRequest.noTLSVerify: true`.
-6. Odkaz klientovi: `https://nahled-<projekt>.tomasganoci.cz`.
+6. Odkaz klientovi: `https://nahled-<projekt>.tomasganoci.cz`, porovnání
+   před a po na `https://nahled-<projekt>.tomasganoci.cz/__porovnani`
+   (README, sekce Before/after comparison). Po změně Benderu a novém base
+   image dostane existující náhled novinky až redeployem v Coolify.
 
 ## Pořadí provedení po schválení
 
